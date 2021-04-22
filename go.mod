@@ -2,6 +2,6 @@ module github.com/johannestaas/goggles
 
 go 1.13
 
-require internal/helloworld v0.0.1
+require internal/connection v0.0.1
 
-replace internal/helloworld => ./internal/helloworld
+replace internal/connection => ./internal/connection
