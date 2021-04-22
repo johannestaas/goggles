@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "internal/helloworld"
 
 func main() {
-    fmt.Println("hello world")
+    helloworld.HelloWorld()
 }
