@@ -41,6 +41,6 @@ func main() {
 			continue
 		}
 		log.Printf("client %s connected\n", conn.RemoteAddr().String())
-		go connection.HandleConnection(conn, stores)
+		go connection.HandleConnection(conn, &stores)
 	}
 }
