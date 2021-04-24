@@ -27,6 +27,8 @@ func (store *KVStore) Get(key string) string {
 	if time.Now().Before(*record.Expiry) {
 		return record.Value
 	} else {
+		// Expired, but hasn't been cleaned up yet.
+		delete(store.MemMap, key)
 		return ""
 	}
 }
