@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import socket
+import time
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(('127.0.0.1', 7712))
@@ -11,10 +12,17 @@ print(s.recv(1024))
 print('getting foo')
 s.sendall(b'get foo\n')
 print(s.recv(1024))
-print('setting foo key to bar')
-s.sendall(b'set foo bar\n')
+print('setting foo key to bar for 3 seconds')
+s.sendall(b'set foo bar 3\n')
 print(s.recv(1024))
 print('getting foo')
+s.sendall(b'get foo\n')
+print(s.recv(1024))
+print('getting foo')
+s.sendall(b'get foo\n')
+print(s.recv(1024))
+time.sleep(3)
+print('getting foo after 3 seconds')
 s.sendall(b'get foo\n')
 print(s.recv(1024))
 s.close()

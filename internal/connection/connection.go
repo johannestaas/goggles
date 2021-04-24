@@ -6,6 +6,8 @@ import (
 	"internal/kvstore"
 	"log"
 	"net"
+	"time"
+	"strconv"
 )
 
 func commandArgLen(command string) (int, error) {
@@ -15,7 +17,7 @@ func commandArgLen(command string) (int, error) {
 	case "get":
 		return 1, nil
 	case "set":
-		return 2, nil
+		return 3, nil
 	default:
 		return 0, errors.New("unknown command " + command)
 	}
@@ -32,7 +34,11 @@ func handleCommand(store *kvstore.KVStore, command string, args []string) (strin
 		result := store.Get(args[0])
 		return result, nil
 	case "set":
-		store.Set(args[0], args[1])
+		duration, err := strconv.ParseUint(args[2], 10, 64)
+		if err != nil {
+			return "", errors.New("duration was not an int: " + args[2])
+		}
+		store.Set(args[0], args[1], time.Duration(duration) * time.Second)
 		return "done", nil
 	default:
 		return "", errors.New("unknown command " + command)
