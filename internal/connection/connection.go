@@ -34,11 +34,11 @@ func handleCommand(store *kvstore.KVStore, command string, args []string) (strin
 		result := store.Get(args[0])
 		return result, nil
 	case "set":
-		duration, err := strconv.ParseUint(args[2], 10, 64)
+		duration, err := strconv.ParseUint(args[0], 10, 64)
 		if err != nil {
-			return "", errors.New("duration was not an int: " + args[2])
+			return "", errors.New("duration was not an int: " + args[0])
 		}
-		store.Set(args[0], args[1], time.Duration(duration) * time.Second)
+		store.Set(args[1], args[2], time.Duration(duration) * time.Second)
 		return "done", nil
 	default:
 		return "", errors.New("unknown command " + command)
