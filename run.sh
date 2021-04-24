@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 
-go run ./cmd/goggles
+go run ./cmd/goggles $*

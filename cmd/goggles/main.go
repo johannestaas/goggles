@@ -1,6 +1,8 @@
 package main
 
 import (
+    "fmt"
+    "flag"
     "log"
     "os"
     "net"
@@ -10,18 +12,20 @@ import (
 
 
 const (
-    connHost = "localhost"
-    connPort = "7712"
-    connType = "tcp"
+    defaultHost = "localhost"
+    defaultPort = 7712
 )
 
 
 func main() {
-    connStr := connHost + ":" + connPort
+    host := flag.String("host", defaultHost, "bind to this host")
+    port := flag.Int("port", defaultPort, "the port to serve on")
+    flag.Parse()
+    connStr := fmt.Sprintf("%s:%d", *host, *port)
     stores := make(map[string]*kvstore.KVStore)
     stores["test"] = kvstore.New("test")
     log.Printf("Starting %s\n", connStr)
-    sock, err := net.Listen(connType, connStr)
+    sock, err := net.Listen("tcp", connStr)
     if err != nil {
         log.Printf("error listening: %s\n", err.Error())
         os.Exit(1)
