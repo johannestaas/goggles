@@ -27,7 +27,7 @@ func (store *KVStore) Get(key string) string {
 	if time.Now().Before(*record.Expiry) {
 		return record.Value
 	} else {
-		return "EXPIRED"
+		return ""
 	}
 }
 
