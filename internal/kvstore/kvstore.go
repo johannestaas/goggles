@@ -6,7 +6,7 @@ import (
 )
 
 type Record struct {
-	Value string
+	Value  string
 	Expiry *time.Time
 }
 
@@ -43,7 +43,7 @@ func (store *KVStore) Set(key string, val string, duration time.Duration) {
 		expiry_ptr = &expiry
 	}
 	record := Record{
-		Value: val,
+		Value:  val,
 		Expiry: expiry_ptr,
 	}
 	store.MemMap[key] = &record

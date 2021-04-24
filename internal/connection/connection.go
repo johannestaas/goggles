@@ -6,8 +6,8 @@ import (
 	"internal/kvstore"
 	"log"
 	"net"
-	"time"
 	"strconv"
+	"time"
 )
 
 const timeout = 5 * time.Second
@@ -35,7 +35,7 @@ func handleSet(store *kvstore.KVStore, durStr string, key string, val string) (s
 	if err != nil {
 		return "", errors.New("duration was not an int: " + durStr)
 	}
-	store.Set(key, val, time.Duration(duration) * time.Second)
+	store.Set(key, val, time.Duration(duration)*time.Second)
 	return "", nil
 }
 
