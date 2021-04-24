@@ -25,10 +25,10 @@ func commandArgLen(command string) (int, error) {
 
 func handleCommand(store *kvstore.KVStore, command string, args []string) (string, error) {
     if store == nil {
-        log.Println("for some reason, the kvstore is nil")
+        log.Printf("for some reason, the kvstore is nil\n")
         return "", errors.New("nil kvstore")
     }
-    log.Println("handling command %s args %v", command, args)
+    log.Printf("handling command %s args %#v\n", command, args)
     switch command {
         case "get":
             result := store.Get(args[0])
@@ -47,18 +47,18 @@ func HandleConnection(conn net.Conn, stores map[string]*kvstore.KVStore) {
     for {
         rdr := bufio.NewReader(conn)
         command, err := rdr.ReadString(' ')
-        command = command[:len(command) - 1]
         if err != nil {
-            log.Println("Client disconnected: ", err.Error())
+            log.Printf("Client disconnected: %s\n", err.Error())
             conn.Close()
             return
         }
+        command = command[:len(command) - 1]
 
         cmd_len, err := commandArgLen(command)
         if err != nil {
             // yeah whateva i'll handle this later
-            log.Println("error: %s", err.Error())
-            log.Println("client sent bullshit, killing their conn: %s", command)
+            log.Printf("error: %s\n", err.Error())
+            log.Printf("client sent bullshit, killing their conn: %s\n", command)
             conn.Close()
             return
         }
@@ -71,13 +71,13 @@ func HandleConnection(conn net.Conn, stores map[string]*kvstore.KVStore) {
             }
             arg, err := rdr.ReadString(delim)
             if err != nil {
-                log.Println("Client disconnected: %s", err.Error())
+                log.Printf("Client disconnected: %s\n", err.Error())
                 conn.Close()
                 return
             }
-            log.Println("parsed arg %s", arg)
+            log.Printf("parsed arg %s\n", arg)
             args = append(args, arg[:len(arg) - 1])
-            log.Println("args is %v", args)
+            log.Printf("args is %#v\n", args)
         }
 
         if command == "db" {
@@ -85,7 +85,7 @@ func HandleConnection(conn net.Conn, stores map[string]*kvstore.KVStore) {
             if ok {
                 store = db
             } else {
-                log.Println("creating db %s", args[0])
+                log.Printf("creating db %s\n", args[0])
                 store = kvstore.New(args[0])
                 stores[args[0]] = store
             }
@@ -93,7 +93,7 @@ func HandleConnection(conn net.Conn, stores map[string]*kvstore.KVStore) {
         } else {
             result, err := handleCommand(store, command, args)
             if err != nil {
-                log.Println("client sent more bullshit: %s", err.Error())
+                log.Printf("client sent more bullshit: %s\n", err.Error())
                 conn.Close()
                 return
             }
