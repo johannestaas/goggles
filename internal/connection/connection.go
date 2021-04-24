@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+const timeout = 5 * time.Second
+
 func commandArgLen(command string) (int, error) {
 	switch command {
 	case "db":
@@ -88,9 +90,11 @@ func HandleConnection(conn net.Conn, stores *map[string]*kvstore.KVStore) {
 		if err != nil {
 			// yeah whateva i'll handle this later
 			log.Printf("error: %s\n", err.Error())
-			log.Printf("client sent bullshit, killing their conn: %s\n", command)
-			conn.Close()
-			return
+			log.Printf("command not recognized: %s\n", command)
+			conn.Write([]byte("error: bad command\n"))
+			log.Println("resetting connection bufio reader")
+			rdr.Reset(conn)
+			continue
 		}
 
 		args, err := makeArgs(rdr, cmdLen)
@@ -113,9 +117,10 @@ func HandleConnection(conn net.Conn, stores *map[string]*kvstore.KVStore) {
 		} else {
 			result, err := handleCommand(store, command, args)
 			if err != nil {
-				log.Printf("client sent more bullshit: %s\n", err.Error())
-				conn.Close()
-				return
+				log.Println("bad command, resetting connection bufio reader")
+				conn.Write([]byte("error: bad command string\n"))
+				rdr.Reset(conn)
+				continue
 			}
 			conn.Write([]byte(result + "\n"))
 		}

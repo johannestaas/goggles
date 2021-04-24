@@ -22,7 +22,7 @@ get()
 send('get foo')
 get()
 
-send('set 3 foo bar')
+send('set 1 foo bar')
 get()
 
 send('get foo')
@@ -31,20 +31,24 @@ get()
 send('get foo')
 get()
 
-print('getting foo after 3 seconds')
-time.sleep(3)
+print('getting foo after 1 seconds')
+time.sleep(1)
 send('get foo')
 get()
 
 send('set 0 foo bar')
 get()
-print('getting foo after 2 seconds')
-time.sleep(2)
+print('getting foo after 1 second')
+time.sleep(1)
 send('get foo')
 get()
 
 print('setting foo key to bar for XXX seconds')
 send('set XXX foo bar')
+get()
+
+print('setting foo baz to nothing')
+send('set 0 baz')
 get()
 
 s.close()
