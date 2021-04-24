@@ -1,10 +1,11 @@
 package main
 
 import (
-    "fmt"
+    "log"
     "os"
     "net"
     "internal/connection"
+    "internal/kvstore"
 )
 
 
@@ -16,11 +17,13 @@ const (
 
 
 func main() {
-    var connStr = connHost + ":" + connPort
-    fmt.Println("Starting " + connStr)
+    connStr := connHost + ":" + connPort
+    stores := make(map[string]*kvstore.KVStore)
+    stores["test"] = kvstore.New("test")
+    log.Println("Starting %s", connStr)
     sock, err := net.Listen(connType, connStr)
     if err != nil {
-        fmt.Println("error listening: ", err.Error())
+        log.Println("error listening: %s", err.Error())
         os.Exit(1)
     }
     defer sock.Close()
@@ -28,12 +31,11 @@ func main() {
     for {
         conn, err := sock.Accept()
         if err != nil {
-            fmt.Println("Error connecting: ", err.Error())
+            log.Println("Error connecting: %s", err.Error())
             return
         }
-        fmt.Println("client connected")
-        fmt.Println("Client " + conn.RemoteAddr().String() + " connected")
+        log.Println("client %s connected", conn.RemoteAddr().String())
 
-        go connection.HandleConnection(conn)
+        go connection.HandleConnection(conn, stores)
     }
 }
