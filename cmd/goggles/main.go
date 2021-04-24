@@ -8,6 +8,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -16,6 +18,15 @@ const (
 )
 
 func main() {
+	// Handle ctrl-c
+	ctrlC := make(chan os.Signal)
+	signal.Notify(ctrlC, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-ctrlC
+		log.Println("caught ctrl-c, quitting...")
+		os.Exit(0)
+	}()
+
 	// cli args
 	host := flag.String("host", defaultHost, "bind to this host")
 	port := flag.Int("port", defaultPort, "the port to serve on")
