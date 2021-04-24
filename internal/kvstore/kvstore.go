@@ -49,10 +49,28 @@ func (store *KVStore) Set(key string, val string, duration time.Duration) {
 	store.MemMap[key] = &record
 }
 
+func (store *KVStore) CleanUp() {
+	ticker := time.NewTicker(1 * time.Second)
+	for {
+		<-ticker.C
+		log.Printf("cleaning up %s\n", store.Name)
+		for key, record := range store.MemMap {
+			if record.Expiry == nil {
+				continue
+			}
+			if time.Now().After(*record.Expiry) {
+				log.Printf("cleaning up key %s in %s\n", key, store.Name)
+				delete(store.MemMap, key)
+			}
+		}
+	}
+}
+
 func New(name string) *KVStore {
 	store := new(KVStore)
 	store.Name = name
 	store.MemMap = make(map[string]*Record)
 	log.Printf("instanciated %s KVStore\n", name)
+	go store.CleanUp()
 	return store
 }
