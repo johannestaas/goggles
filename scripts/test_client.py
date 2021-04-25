@@ -12,43 +12,48 @@ def send(msg):
     s.sendall(msg.encode() + b'\n')
 
 
-def get():
-    print(f'received: {s.recv(1024)!r}\n')
+def get(expected):
+    result = s.recv(1024).decode()
+    print(f'received: {result!r}\n')
+    if result != expected:
+        print(f'expected: {expected!r}\n')
+        raise AssertionError
 
 
 send('db test')
-get()
+get('\n')
 
 send('get foo')
-get()
+get('\n')
 
 send('set 1 foo bar')
-get()
+get('\n')
 
 send('get foo')
-get()
+get('bar\n')
 
 send('get foo')
-get()
+get('bar\n')
 
 print('getting foo after 1 seconds')
 time.sleep(1)
 send('get foo')
-get()
+get('\n')
 
 send('set 0 foo bar')
-get()
+get('\n')
 print('getting foo after 1 second')
 time.sleep(1)
 send('get foo')
-get()
+get('bar\n')
 
 print('setting foo key to bar for XXX seconds')
 send('set XXX foo bar')
-get()
+get('error: bad command string\n')
 
-print('setting foo baz to nothing')
-send('set 0 baz')
-get()
+# XXX add timeout to exit
+# print('setting foo baz to nothing')
+# send('set 0 baz')
+# get()
 
 s.close()
