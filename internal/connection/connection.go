@@ -40,7 +40,16 @@ func handleSet(store *kvstore.KVStore, durStr string, key string, val string) (s
 	return "", nil
 }
 
-func handleCommand(store *kvstore.KVStore, command string, args []string) (string, error) {
+func handleDrop(db *database.Database, store *kvstore.KVStore) (string, error) {
+	if store == nil {
+		log.Printf("dropping kvstore but it's nil\n")
+		return "", errors.New("nil kvstore")
+	}
+	db.DropStore(store)
+	return "", nil
+}
+
+func handleCommand(db *database.Database, store *kvstore.KVStore, command string, args []string) (string, error) {
 	if store == nil {
 		log.Printf("for some reason, the kvstore is nil\n")
 		return "", errors.New("nil kvstore")
@@ -51,6 +60,8 @@ func handleCommand(store *kvstore.KVStore, command string, args []string) (strin
 		return handleGet(store, args[0])
 	case "set":
 		return handleSet(store, args[0], args[1], args[2])
+	case "drop":
+		return handleDrop(db, store)
 	default:
 		return "", errors.New("unknown command " + command)
 	}
@@ -76,7 +87,6 @@ func makeArgs(rdr *bufio.Reader, cmdLen int) ([]string, error) {
 }
 
 func HandleConnection(conn net.Conn, db *database.Database) {
-	// stores := *map[string]*kvstore.KVStore
 	var store *kvstore.KVStore = nil
 	for {
 		rdr := bufio.NewReader(conn)
@@ -110,7 +120,7 @@ func HandleConnection(conn net.Conn, db *database.Database) {
 			store = db.GetOrCreateStore(&args[0])
 			conn.Write([]byte("\n"))
 		} else {
-			result, err := handleCommand(store, command, args)
+			result, err := handleCommand(db, store, command, args)
 			if err != nil {
 				log.Println("bad command, resetting connection bufio reader")
 				conn.Write([]byte("error: bad command string\n"))
