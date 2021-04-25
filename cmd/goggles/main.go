@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"internal/connection"
-	"internal/kvstore"
+	"internal/database"
 	"log"
 	"net"
 	"os"
@@ -44,8 +44,9 @@ func main() {
 	checkDataDirOrExit(dataDir)
 
 	connStr := fmt.Sprintf("%s:%d", *host, *port)
-	// init kvstores
-	stores := make(map[string]*kvstore.KVStore)
+
+	// init db
+	db := database.New(dataDir)
 
 	// start up server
 	log.Printf("Starting %s\n", connStr)
@@ -63,6 +64,6 @@ func main() {
 			continue
 		}
 		log.Printf("client %s connected\n", conn.RemoteAddr().String())
-		go connection.HandleConnection(conn, &stores)
+		go connection.HandleConnection(conn, db)
 	}
 }

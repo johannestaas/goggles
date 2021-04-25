@@ -3,6 +3,7 @@ package connection
 import (
 	"bufio"
 	"errors"
+	"internal/database"
 	"internal/kvstore"
 	"log"
 	"net"
@@ -74,7 +75,8 @@ func makeArgs(rdr *bufio.Reader, cmdLen int) ([]string, error) {
 	return args, nil
 }
 
-func HandleConnection(conn net.Conn, stores *map[string]*kvstore.KVStore) {
+func HandleConnection(conn net.Conn, db *database.Database) {
+	// stores := *map[string]*kvstore.KVStore
 	var store *kvstore.KVStore = nil
 	for {
 		rdr := bufio.NewReader(conn)
@@ -105,14 +107,7 @@ func HandleConnection(conn net.Conn, stores *map[string]*kvstore.KVStore) {
 		}
 
 		if command == "db" {
-			db, ok := (*stores)[args[0]]
-			if ok {
-				store = db
-			} else {
-				log.Printf("creating db %s\n", args[0])
-				store = kvstore.New(args[0])
-				(*stores)[args[0]] = store
-			}
+			store = db.GetOrCreateStore(&args[0])
 			conn.Write([]byte("\n"))
 		} else {
 			result, err := handleCommand(store, command, args)
