@@ -3,26 +3,31 @@ package connection
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"internal/database"
 	"internal/kvstore"
 	"log"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const timeout = 5 * time.Second
 
-func commandArgLen(command string) (int, error) {
-	switch command {
+func commandArgLen(command *string) (int, error) {
+	switch *command {
 	case "db":
 		return 1, nil
 	case "get":
 		return 1, nil
 	case "set":
 		return 3, nil
+	case "drop":
+		return 0, nil
 	default:
-		return 0, errors.New("unknown command " + command)
+		log.Printf("client error: got the command %v\n", *command)
+		return 0, errors.New("unknown command " + *command)
 	}
 }
 
@@ -67,40 +72,49 @@ func handleCommand(db *database.Database, store *kvstore.KVStore, command string
 	}
 }
 
-func makeArgs(rdr *bufio.Reader, cmdLen int) ([]string, error) {
-	var args []string
-	for i := 0; i < cmdLen; i++ {
-		var delim byte = ' '
-		if i == cmdLen-1 {
-			delim = '\n'
-		}
-		arg, err := rdr.ReadString(delim)
-		if err != nil {
-			log.Printf("Client disconnected: %s\n", err.Error())
-			return args, errors.New("client disconnected")
-		}
-		log.Printf("parsed arg %s\n", arg)
-		args = append(args, arg[:len(arg)-1])
-		log.Printf("args is %#v\n", args)
+func makeArgs(argStr string, cmdLen int) ([]string, error) {
+	args := strings.SplitAfterN(argStr, " ", cmdLen)
+	if len(args) == 1 && args[0] == "" {
+		// Split will return an array of size 1 with "" if it's empty.
+		args = []string{}
+	}
+	if len(args) != cmdLen {
+		errMsg := fmt.Sprintf("expected %d arguments, got %s", cmdLen, argStr)
+		return args, errors.New(errMsg)
+	}
+	for i, arg := range args {
+		// Trim the leading " " or "\n"
+		size := len(arg)
+		args[i] = arg[:size-1]
 	}
 	return args, nil
+}
+
+func splitStatement(statement *string) (string, string) {
+	split := strings.SplitAfterN(*statement, " ", 2)
+	command := strings.TrimSpace(split[0])
+	if len(split) == 1 {
+		return command, ""
+	}
+	argStr := split[1]
+	return command, argStr
 }
 
 func HandleConnection(conn net.Conn, db *database.Database) {
 	var store *kvstore.KVStore = nil
 	for {
 		rdr := bufio.NewReader(conn)
-		command, err := rdr.ReadString(' ')
+		statement, err := rdr.ReadString('\n')
 		if err != nil {
 			log.Printf("Client disconnected: %s\n", err.Error())
 			conn.Close()
 			return
 		}
-		command = command[:len(command)-1]
 
-		cmdLen, err := commandArgLen(command)
+		command, argStr := splitStatement(&statement)
+
+		cmdLen, err := commandArgLen(&command)
 		if err != nil {
-			// yeah whateva i'll handle this later
 			log.Printf("error: %s\n", err.Error())
 			log.Printf("command not recognized: %s\n", command)
 			conn.Write([]byte("error: bad command\n"))
@@ -109,8 +123,9 @@ func HandleConnection(conn net.Conn, db *database.Database) {
 			continue
 		}
 
-		args, err := makeArgs(rdr, cmdLen)
+		args, err := makeArgs(argStr, cmdLen)
 		if err != nil {
+			log.Printf("error: %s\n", err.Error())
 			log.Println("client disconnected")
 			conn.Close()
 			return
@@ -126,6 +141,9 @@ func HandleConnection(conn net.Conn, db *database.Database) {
 				conn.Write([]byte("error: bad command string\n"))
 				rdr.Reset(conn)
 				continue
+			}
+			if command == "drop" {
+				store = nil
 			}
 			conn.Write([]byte(result + "\n"))
 		}
