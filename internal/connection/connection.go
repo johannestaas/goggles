@@ -126,9 +126,10 @@ func HandleConnection(conn net.Conn, db *database.Database) {
 		args, err := makeArgs(argStr, cmdLen)
 		if err != nil {
 			log.Printf("error: %s\n", err.Error())
-			log.Println("client disconnected")
-			conn.Close()
-			return
+			conn.Write([]byte("error: bad command\n"))
+			log.Println("resetting connection bufio reader")
+			rdr.Reset(conn)
+			continue
 		}
 
 		if command == "db" {

@@ -62,9 +62,9 @@ send('set XXX foo bar')
 get('error: bad command string\n')
 
 # XXX add timeout to exit
-# print('setting foo baz to nothing')
-# send('set 0 baz')
-# get()
+print('setting foo baz to nothing')
+send('set 0 baz')
+get('error: bad command\n')
 
 print('PASS!')
 
