@@ -92,7 +92,7 @@ func makeArgs(argStr string, cmdLen int) ([]string, error) {
 
 func splitStatement(statement *string) (string, string) {
 	split := strings.SplitAfterN(*statement, " ", 2)
-	command := strings.TrimSpace(split[0])
+	command := strings.TrimRight(split[0], " \n")
 	if len(split) == 1 {
 		return command, ""
 	}

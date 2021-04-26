@@ -66,4 +66,6 @@ get('error: bad command string\n')
 # send('set 0 baz')
 # get()
 
+print('PASS!')
+
 s.close()
